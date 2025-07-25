@@ -1,0 +1,30 @@
+openapi: 3.1.1
+info:
+  title: Tajo API
+  version: 1.0.0
+servers:
+  - url: https://tajo.pro/api/v1
+paths:
+  /employees:
+    get:
+      summary: List all employees
+      responses:
+        '200':
+          description: Erfolgreich
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Employee'
+components:
+  schemas:
+    Employee:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        position:
+          type: string
