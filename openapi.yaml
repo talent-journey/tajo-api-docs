@@ -1,13 +1,359 @@
 openapi: 3.1.1
+x-tagGroups:
+- name: Core
+  tags:
+    - Employees
+    - Assets
+- name: Career
+  tags:
+    - Job Postings
+    - Job Applications
+- name: Settings
+  tags:
+    - Custom Attributes
 info:
   title: Tajo API
   version: 1.0.0
+  x-logo:
+    url: "logo.png"
+
+  description: |
+    Thanks for using the Tajo API to extend the functionality of Tajo.
+    We're thrilled to see what you make out of it and how it benefits your company,
+    your clients and your employees.
+
+    If you have any questions, don't hesitate to contact us at support@tajo.pro.
+
+    And now, let's build something beautiful ✨
+
+    # 📕 Pagination
+    Tajo uses a simple offset pagination pattern, which is based on page numbers and limits.
+    Whenever you make a request to a list endpoint, you get handy pagination information in the `meta` object in addition
+    to the actual `data`.
+
+    If not stated otherwise, the sorting is `ascending` based on the `created_at` timestamp.
+
+    You can use the following parameters to get the a specific subset of the total items:
+
+    - **page** (Integer): The page you want to request (e.g. `2`)
+    - **per_page** (Integer): The amount of items you want to retrieve in this batch.
+      Please note, that the maximum value is `100`. If the `per_page` parameter is not present, it defaults to `50`
+
+
+    **Example request and response:**
+
+    ```
+      GET api/v1/foobars?page=2&per_page=25
+    ```
+
+    ```
+    {
+      data: [...],
+      meta: {
+        current_page: 2,
+        has_next_page: true
+        per_page: 25,
+        total_count: 165,
+        total_pages: 7,
+      }
+    
+    }
+    ```
+
+    # 🔒 Authentication
+    Tajo uses API Access Keys to authenticate requests to the API.  
+
+    ## Creating an API Access Key
+    Access keys can be created (and revoked) through the Tajo Admin UI.
+    If you do not have the rights to do that on your own, please ask your Tajo admin
+    to create an access key for you.
+
+    ## Scopes
+    Access keys can be scoped, so that only a specific subset of a company's data
+    can be accessed with the respective key.
+    Scopes can be managed in the Tajo Admin UI.
+
+    ## Usage
+    In order to authenticate your request, you need to send the access key as a
+    Bearer token with every request using the `Authentication` header.
+
+    **Example:**
+    ```
+      curl -H "Authorization: Bearer YOUR_TOKEN_HERE" https://tajo.pro/api/v1/employees
+    ```
+
 servers:
   - url: https://tajo.pro/api/v1
+security:
+  - BearerAuth: []
 paths:
+  /custom_attributes:
+    get:
+      summary: List all custom attributes
+      description: Custom attributes are additional attributes for employees that are specific to a certain company. They are always identified through their `key` value.
+      tags:
+        - Custom Attributes
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                - id: "700695b7-28e7-4f52-92f3-25dabbd58e1b"
+                  key: "custom_deb679"
+                  name: "SpeditCard"
+                  kind: "currency"
+                  selectable: false
+                - id: "0f518067-46f7-41d2-9205-64022e720ca0"
+                  key: "custom_d33bd6"
+                  name: "Accepted Privacy Agreement"
+                  kind: "boolean"
+                  selectable: false
+
+
   /employees:
     get:
       summary: List all employees
+      tags:
+        - Employees
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              example:
+                $ref: '#/components/examples/Employee'
+
+    post:
+      summary: Create an employee
+      description: It's best practice to create an employee using the full name and an employee number (optional) first and then enrich the dataset using the PATCH endpoint.
+      tags:
+        - Employees
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - first_name
+              properties: 
+                name:
+                  type: string
+                  description: The last name of the employee
+                  example: Meier
+                first_name:
+                  type: string
+                  description: The first name of the employee
+                  example: Tom
+                employee_number:
+                  type: string
+                  description: An internal identifier for this employee. Must be unique in the current company.
+                  example: "115"
+
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              example:
+                $ref: '#/components/examples/Employee'
+
+        '422':
+          $ref: '#/components/responses/422'
+
+  /employees/{id}:
+    get:
+      summary: Retrieve an employee
+      description: Retrieve a user by their unique ID or employee number.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier or the employee number of the user 
+          schema:
+            type: string
+      tags:
+        - Employees
+      responses:
+        '200':
+          description: Erfolgreich
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+              examples:
+                first:
+                  value:
+                    id: f8bbe977-47df-4191-853d-5a1a8001f76c
+                    name: Tom
+                    first_name: Riddle
+                    job_title: Marketing Specialist
+                    email: amina.abdi@tajo.pro
+                    sex: female
+                    birthday: "2000-07-27"
+                    marital_status: null
+                    employee_number: "015"
+                    nationality: "German"
+                    tax_number: "123456789"
+                    health_insurance_name: null
+                    health_insurance_kind: null
+                    health_insurance_number: null
+                    drivers_licence: null
+                    iban: null
+                    bic: null
+                    bank_account_holder: null
+                    starts_on: "2025-09-01"
+                    leaves_on: null
+                    first_day_on: "2025-09-01"
+                    last_day_on: null
+                    probation_period: 3
+                    notice_period: 4
+                    exit_time: null
+                    weekly_hours: 40
+                    vacation_days: 30
+                    phone_number: null
+                    street: null
+                    additional_address_line: null
+                    zip_code: null
+                    city: null
+                    country: null
+                    birthplace: null
+                    social_security_number: null
+                    stage: employee
+                    created_at: "2025-07-22T16:15:52.568+02:00"
+                    updated_at: "2025-07-27T10:18:42.382+02:00"
+                    custom_attributes:
+                      custom_66b45c:
+                        value: amina.abdi@example.com
+                        kind: string
+                        name: E-mail (private)
+                      custom_7721d7:
+                        value: "100"
+                        kind: string
+                        name: Cost Center
+                      custom_b2333c:
+                        value: true
+                        kind: boolean
+                        name: Accepted DSGVO
+        '404':
+          $ref: '#/components/responses/404'
+
+    patch:
+      summary: Update an employee
+      tags:
+        - Employees
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - first_name
+              properties: 
+                name:
+                  type: string
+                  description: The last name of the employee
+                  example: Tom
+                first_name:
+                  type: string
+                  format: date
+                  description: The first name of the employee
+                  example: Meier
+                employee_number:
+                  type: string
+                  format: date
+                  description: The first name of the employee
+                  example: "115"
+                job_title:
+                  type: string
+                  description: The job title of the employee
+                  example: Marketing Specialist
+                email:
+                  type: string
+                  format: email
+                  description: The business email of the employee
+                  example: tom.meier@example.com
+                sex:
+                  type: string
+                  enum: [male, female, diverse]
+                  description: The gender of the employee
+                  example: female
+                birthday:
+                  type: string
+                  format: date
+                  description: The date of birth of the employee
+                  example: "1986-06-25"
+                marital_status:
+                  type: string
+                  enum: [single, married, divorced, widowed, registered_civil_partnership, registered_partne_deceased, registered_civil_partnership_annulled]
+                  description: The marital status of the employee
+                  example: married
+                nationality:
+                  type: string
+                  description: The nationality of the employee
+                  example: "German"
+                tax_number:
+                  type: string
+                  description: The tax identification number of the employee
+                  example: "123456789"
+                starts_on:
+                  type: string
+                  format: date
+                  description: The contract start date
+                  example: "2025-09-01"
+                first_day_on:
+                  type: string
+                  format: date
+                  description: The first working day
+                  example: "2025-09-01"
+                probation_period:
+                  type: integer
+                  description: The probation period in months
+                  example: 3
+                notice_period:
+                  type: integer
+                  description: The notice period in months
+                  example: 4
+                weekly_hours:
+                  type: number
+                  description: The weekly working hours
+                  example: 40
+                vacation_days:
+                  type: integer
+                  description: The number of vacation days per year
+                  example: 30
+                stage:
+                  type: string
+                  enum: [hiree, rookie, employee, leaver, alumni]
+                  description: "The current stage of the employee in the company"
+                  example: "employee"
+                custom_attributes:
+                  type: object
+                  description: "These are additional attributes that are identified with a key. The available keys can be retrieved through the CustomAttributes endpoint."
+                  example: {"custom_1234": "foobar"}
+
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Employee'
+        '422':
+          $ref: '#/components/responses/422'
+
+
+  /career/job_applications/{id}:
+    get:
+      summary: Create a job application
+      tags:
+        - Job Applications
       responses:
         '200':
           description: Erfolgreich
@@ -17,14 +363,196 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Employee'
+
+  /career/job_postings:
+    get:
+      summary: List all job postings
+      tags:
+        - Job Postings
+      responses:
+        '200':
+          description: Erfolgreich
+          content:
+            application/json:
+              example:
+                - id: c516a1cf-77ed-4d64-85f1-2553b051207c
+                  name: Marketing Manager (m/w/d)
+                  code: "373016"
+                  starts_on: null
+                  location: null
+                  schedule: full_time
+                  workplace: hybrid
+                  created_at: "2024-11-02T16:56:07.783+01:00"
+                  updated_at: "2025-01-04T09:11:59.082+01:00"
+                  description: null
+                  division:
+                    id: da7c778a-a444-4308-adfe-8b1c5de25f07
+                    name: Marketing
+                - "…": "…"
+
+  /assets:
+    get:
+      summary: List all assets
+      description: Retrieve a list of all assets
+      tags:
+        - Assets
+      responses:
+        '200':
+          description: Erfolgreich
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Asset'
+              example:
+                - id: fe97437c-37c0-4cf1-9e26-564d2560f7e9
+                  name: Audi A6
+                  description: null
+                  created_at: "2025-02-07T07:56:11.723+01:00"
+                  updated_at: "2025-02-07T07:56:11.723+01:00"
+                  category:
+                    id: d4f61102-e66e-4717-8ba0-6044ef9b4f7e
+                    name: Dienstwagen
+                  employee:
+                    id: 9c4d5145-7622-4384-8903-fae83500d736
+                    name: Emmy Agostini
+                - "…": "…"
+
+  /assets/{id}:
+    get:
+      summary: Retrieve an asset
+      tags:
+        - Assets
+      responses:
+        '200':
+          description: Erfolgreich
+          content:
+            application/json:
+              example:
+                - id: fe97437c-37c0-4cf1-9e26-564d2560f7e9
+                  name: Audi A6
+                  description: null
+                  created_at: "2025-02-07T07:56:11.723+01:00"
+                  updated_at: "2025-02-07T07:56:11.723+01:00"
+                  category:
+                    id: d4f61102-e66e-4717-8ba0-6044ef9b4f7e
+                    name: Dienstwagen
+                  employee:
+                    id: 9c4d5145-7622-4384-8903-fae83500d736
+                    name: Emmy Agostini
+                - "…": "…"
+
 components:
-  schemas:
+  examples:
     Employee:
+      id: f8bbe977-47df-4191-853d-5a1a8001f76c
+      name: Meier
+      first_name: Tom
+      employee_number: "115"
+      "[…]": "[…]"
+      created_at: "2025-07-22T16:15:52.568+02:00"
+      updated_at: "2025-07-27T10:18:42.382+02:00"
+    Asset:
+      id: fe97437c-37c0-4cf1-9e26-564d2560f7e9
+      name: Audi A6
+      description: null
+      created_at: "2025-02-07T07:56:11.723+01:00"
+      updated_at: "2025-02-07T07:56:11.723+01:00"
+      category:
+        id: d4f61102-e66e-4717-8ba0-6044ef9b4f7e
+        name: Dienstwagen
+      employee:
+        id: 9c4d5145-7622-4384-8903-fae83500d736
+        name: Emmy Agostini
+  schemas:
+    EmployeeCreate:
       type: object
+      required:
+        - name
+        - first_name
       properties:
         id:
           type: string
         name:
           type: string
-        position:
+          example: "Doe"
+        first_name:
           type: string
+          example: "John"
+    Employee:
+      allOf:
+        - $ref: "#/components/schemas/EmployeeCreate"
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+              example: "Doe"
+            first_name:
+              type: string
+              example: "John"
+            created_at:
+              type: string
+              format: date-time
+            updated_at:
+              type: string
+              format: date-time
+
+    EmployeeUpdate:
+      allOf:
+        - $ref: "#/components/schemas/EmployeeCreate"
+        - type: object
+          required:
+            - id
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+              example: "Doe"
+            first_name:
+              type: string
+              example: "John"
+
+    Asset:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          example: "SpenditCard"
+        description:
+          type: string
+          example: "SpenditCard"
+
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+  responses:
+    "404":
+      description: Not found
+      content:
+        application/json:
+          example:
+            errors:
+            - status: "404"
+              title: "Record not found"
+    "422":
+      description: Unprocessable entity
+      content:
+        application/json:
+          example:
+            errors:
+            - status: "422"
+              title: "Unprocessable entity"
+              details: "Name cannot be blank"
