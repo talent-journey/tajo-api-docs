@@ -216,17 +216,79 @@ paths:
   /career/job_applications:
     post:
       summary: Create a job application
+      description: |
+        This endpoint allows you to submit a new job application for a specific job posting. The application data is submitted as multipart form data and creates a candidate record along with the application.
+        
+        ## Notes
+        
+        - Multiple file attachments (resumes, cover letters, etc.) can be uploaded using the `files` field
+        - The `accepted_job_pool_at` timestamp is automatically generated when `accepted_job_pool` is set to true
       tags:
         - Job Applications
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - first_name
+                - name
+                - email
+              properties:
+                job_posting_id:
+                  type: string
+                  format: uuid
+                  description: The unique identifier of the job posting for which the application is being submitted. If left blank, the application will be marked as an initial application without a specific job posting.
+                  example: "f4f6d2e7-b35a-4587-a839-d05ac7cdb415"
+                first_name:
+                  type: string
+                  description: The applicant's first name
+                  example: "Franz"
+                name:
+                  type: string
+                  description: The applicant's last name
+                  example: "Meier"
+                email:
+                  type: string
+                  format: email
+                  description: The applicant's email address
+                  example: "franz@example.com"
+                message:
+                  type: string
+                  description: The application message or cover letter text
+                  example: "Hi. I am very interested in this position and would like to apply. Please find my resume attached."
+                phone:
+                  type: string
+                  description: The applicant's phone number (optional)
+                  example: "+49 123 456789"
+                accepted_job_pool:
+                  type: boolean
+                  description: Indicates whether the candidate accepts being added to the job pool for future opportunities
+                  example: true
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+                  description: Multiple file attachments (e.g., resume, cover letter, certificates)
       responses:
-        '201':
-          description: Created
+        '200':
+          description: Successfully created job application
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/JobApplicationCreate'
+                $ref: '#/components/schemas/JobApplicationResponse'
               example:
-                $ref: '#/components/examples/JobApplication'
+                id: "f4f6d2e7-b35a-4587-a839-d05ac7cdb415"
+                message: "Hi. I am very interested in this position and would like to apply. Please find my resume attached."
+                candidate:
+                  id: "67042839-4eac-4aa3-9375-f37273711775"
+                  first_name: "Franz"
+                  name: "Meier"
+                  email: "franz@example.com"
+                  phone: null
+                  accepted_job_pool_at: "2026-02-10T14:09:39.750+01:00"
 
   /career/job_postings:
     get:
@@ -564,6 +626,51 @@ components:
         description:
           type: string
           example: "SpenditCard"
+    
+    JobApplicationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the created job application
+          example: "f4f6d2e7-b35a-4587-a839-d05ac7cdb415"
+        message:
+          type: string
+          description: The application message submitted by the candidate
+          example: "Hi. I am very interested in this position and would like to apply. Please find my resume attached."
+        candidate:
+          type: object
+          description: Object containing the candidate's information
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: Unique identifier for the candidate record
+              example: "67042839-4eac-4aa3-9375-f37273711775"
+            first_name:
+              type: string
+              description: Candidate's first name
+              example: "Franz"
+            name:
+              type: string
+              description: Candidate's last name
+              example: "Meier"
+            email:
+              type: string
+              format: email
+              description: Candidate's email address
+              example: "franz@example.com"
+            phone:
+              type: string
+              nullable: true
+              description: Candidate's phone number (null if not provided)
+              example: null
+            accepted_job_pool_at:
+              type: string
+              format: date-time
+              description: Timestamp when the candidate accepted being added to the job pool
+              example: "2026-02-10T14:09:39.750+01:00"
 
   securitySchemes:
     BearerAuth:
