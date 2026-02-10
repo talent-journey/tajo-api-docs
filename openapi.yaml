@@ -13,7 +13,7 @@ x-tagGroups:
     - Custom Attributes
 info:
   title: Tajo API
-  version: 1.0.0
+  version: 1.0.1  # Increment this with each deployment
   x-logo:
     url: "logo.png"
 
