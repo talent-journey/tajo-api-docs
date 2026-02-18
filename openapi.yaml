@@ -13,7 +13,7 @@ x-tagGroups:
     - Custom Attributes
 info:
   title: Tajo API
-  version: 1.0.1  # Increment this with each deployment
+  version: 1.0.2  # Increment this with each deployment
   x-logo:
     url: "logo.png"
 
@@ -589,22 +589,28 @@ components:
           type: string
         name:
           type: string
+          description: Name of the posting
           example: "Marketing Manager"
         code:
           type: string
+          description: A unique code that can be displayed. For referencing and receiving job postings through the API, use :id instead
           example: "3AFA41"
         starts_on:
           type: string
           format: date
+          description: Planned start date for the position.
           example: "2025-10-01"
         location:
           type: string
+          description: The work location of the job
           example: "St.Wendel"
         schedule:
           type: string
+          description: Employment schedule type
           enum: ["full_time", "part_time", "contract"]
         workplace:
           type: string
+          description: Work arrangement type
           enum: ["on_site", "hybrid", "remote"]
         description:
           type: string
